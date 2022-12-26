@@ -1,97 +1,107 @@
 import 'dart:io';
 
 import 'package:dotted_border/dotted_border.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper_test/cubit/app_cubit.dart';
 
-void main() {
+import 'bloc_observer.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Bloc.observer = MyBlocObserver();
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-          primarySwatch: Colors.blue,
-          highlightColor: const Color(0xFFD0996F),
-          backgroundColor: const Color(0xFFFDF5EC),
-          canvasColor: const Color(0xFFFDF5EC),
-          textTheme: TextTheme(
-            headline5: ThemeData.light()
-                .textTheme
-                .headline5!
-                .copyWith(color: const Color(0xFFBC764A)),
-          ),
-          iconTheme: IconThemeData(
-            color: Colors.grey[600],
-          ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFFBC764A),
-            centerTitle: false,
-            foregroundColor: Colors.white,
-            actionsIconTheme: IconThemeData(color: Colors.white),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ButtonStyle(
-              backgroundColor: MaterialStateColor.resolveWith(
-                  (states) => const Color(0xFFBC764A)),
+    return BlocProvider(
+      create: (context) => AppCubit(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+            primarySwatch: Colors.blue,
+            highlightColor: const Color(0xFFD0996F),
+            backgroundColor: const Color(0xFFFDF5EC),
+            canvasColor: const Color(0xFFFDF5EC),
+            textTheme: TextTheme(
+              headline5: ThemeData.light()
+                  .textTheme
+                  .headline5!
+                  .copyWith(color: const Color(0xFFBC764A)),
             ),
-          ),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: ButtonStyle(
-              foregroundColor: MaterialStateColor.resolveWith(
-                (states) => const Color(0xFFBC764A),
+            iconTheme: IconThemeData(
+              color: Colors.grey[600],
+            ),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFFBC764A),
+              centerTitle: false,
+              foregroundColor: Colors.white,
+              actionsIconTheme: IconThemeData(color: Colors.white),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateColor.resolveWith(
+                    (states) => const Color(0xFFBC764A)),
               ),
-              side: MaterialStateBorderSide.resolveWith(
-                  (states) => const BorderSide(color: Color(0xFFBC764A))),
             ),
-          )),
-      home: const HomePage(title: 'Image Cropper Demo'),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: ButtonStyle(
+                foregroundColor: MaterialStateColor.resolveWith(
+                  (states) => const Color(0xFFBC764A),
+                ),
+                side: MaterialStateBorderSide.resolveWith(
+                    (states) => const BorderSide(color: Color(0xFFBC764A))),
+              ),
+            )),
+        home: const HomePage(),
+      ),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  final String title;
 
   const HomePage({
     Key? key,
-    required this.title,
   }) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  XFile? _pickedFile;
-  CroppedFile? _croppedFile;
-
   @override
   Widget build(BuildContext context) {
+    print("build");
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: _body()),
-        ],
+      appBar: AppBar(title: const Text('cropped image')),
+      body: BlocConsumer<AppCubit, AppState>(
+        listener: (context, state) {},
+        builder: (context, state) {
+          return Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _body(),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _body() {
-    if (_croppedFile != null || _pickedFile != null) {
+    if (context.read<AppCubit>().pickedFile != null) {
       return _imageCard();
     } else {
       return _uploaderCard();
@@ -124,8 +134,8 @@ class _HomePageState extends State<HomePage> {
   Widget _image() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    if (_croppedFile != null) {
-      final path = _croppedFile!.path;
+    if (context.read<AppCubit>().croppedFile != null) {
+      final path = context.read<AppCubit>().croppedFile!.path;
       return ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 0.8 * screenWidth,
@@ -133,8 +143,8 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Image.file(File(path)),
       );
-    } else if (_pickedFile != null) {
-      final path = _pickedFile!.path;
+    } else if (context.read<AppCubit>().pickedFile != null) {
+      final path = context.read<AppCubit>().pickedFile!.path;
       return ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 0.8 * screenWidth,
@@ -153,7 +163,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         FloatingActionButton(
           onPressed: () {
-            _clear();
+            context.read<AppCubit>().clear();
           },
           backgroundColor: Colors.redAccent,
           tooltip: 'Delete',
@@ -164,7 +174,7 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.only(left: 32.0),
           child: FloatingActionButton(
             onPressed: () {
-              _cropImage();
+              context.read<AppCubit>().cropImage();
             },
             backgroundColor: const Color(0xFFBC764A),
             tooltip: 'Crop',
@@ -196,7 +206,7 @@ class _HomePageState extends State<HomePage> {
                   child: DottedBorder(
                     radius: const Radius.circular(12.0),
                     borderType: BorderType.RRect,
-                    dashPattern: const [8, 4],
+                    dashPattern: const [7, 10],
                     color: Theme.of(context).highlightColor.withOpacity(0.4),
                     child: Center(
                       child: Column(
@@ -227,7 +237,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(vertical: 24.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    _uploadImage();
+                    context.read<AppCubit>().uploadImage();
                   },
                   child: const Text('Upload'),
                 ),
@@ -237,51 +247,5 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  Future<void> _cropImage() async {
-    if (_pickedFile != null) {
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: _pickedFile!.path,
-        compressFormat: ImageCompressFormat.jpg,
-        compressQuality: 100,
-        uiSettings: [
-          AndroidUiSettings(
-              toolbarTitle: 'Cropper',
-              toolbarColor: Colors.deepOrange,
-              toolbarWidgetColor: Colors.white,
-              initAspectRatio: CropAspectRatioPreset.original,
-              lockAspectRatio: false),
-          IOSUiSettings(
-            title: 'Cropper',
-            //showCancelConfirmationDialog: true,
-            // showActivitySheetOnDone: true,
-            //   aspectRatioLockEnabled: false,
-          ),
-        ],
-      );
-      if (croppedFile != null) {
-        setState(() {
-          _croppedFile = croppedFile;
-        });
-      }
-    }
-  }
-
-  Future<void> _uploadImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _pickedFile = pickedFile;
-      });
-    }
-  }
-
-  void _clear() {
-    setState(() {
-      _pickedFile = null;
-      _croppedFile = null;
-    });
   }
 }
