@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:image_cropper_test/cubit/app_cubit.dart';
-
+import 'package:get/get.dart';
+import 'package:image_cropper_test/test.dart';
 import 'bloc_observer.dart';
 
 void main() async {
@@ -23,25 +24,24 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => AppCubit(),
-      child: MaterialApp(
+      child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
         theme: ThemeData(
             primarySwatch: Colors.blue,
-            highlightColor: const Color(0xFFD0996F),
+            highlightColor: Color(0xFFB2560D),
             backgroundColor: const Color(0xFFFDF5EC),
             canvasColor: const Color(0xFFFDF5EC),
             textTheme: TextTheme(
               headline5: ThemeData.light()
                   .textTheme
                   .headline5!
-                  .copyWith(color: const Color(0xFFBC764A)),
+                  .copyWith(color: Colors.black54),
             ),
             iconTheme: IconThemeData(
               color: Colors.grey[600],
             ),
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFFBC764A),
+              backgroundColor: Color(0xFFB2560D),
               centerTitle: false,
               foregroundColor: Colors.white,
               actionsIconTheme: IconThemeData(color: Colors.white),
@@ -49,19 +49,19 @@ class MyApp extends StatelessWidget {
             elevatedButtonTheme: ElevatedButtonThemeData(
               style: ButtonStyle(
                 backgroundColor: MaterialStateColor.resolveWith(
-                    (states) => const Color(0xFFBC764A)),
+                    (states) =>  Color(0xFFB2560D),),
               ),
             ),
             outlinedButtonTheme: OutlinedButtonThemeData(
               style: ButtonStyle(
                 foregroundColor: MaterialStateColor.resolveWith(
-                  (states) => const Color(0xFFBC764A),
+                  (states) =>  Colors.black54,
                 ),
                 side: MaterialStateBorderSide.resolveWith(
-                    (states) => const BorderSide(color: Color(0xFFBC764A))),
+                    (states) => const BorderSide(color: Colors.black54)),
               ),
             )),
-        home: const HomePage(),
+        home:  Test(),
       ),
     );
   }
@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     print("build");
     return Scaffold(
-      appBar: AppBar(title: const Text('cropped image')),
+      appBar: AppBar(title: const Text('cropped image'),centerTitle: true,),
       body: BlocConsumer<AppCubit, AppState>(
         listener: (context, state) {},
         builder: (context, state) {
@@ -180,7 +180,17 @@ class _HomePageState extends State<HomePage> {
             tooltip: 'Crop',
             child: const Icon(Icons.crop),
           ),
-        )
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 32.0),
+          child: FloatingActionButton(
+            onPressed: () {
+              context.read<AppCubit>().saveImage();
+            },
+            backgroundColor: Colors.green,
+            child: const Icon(Icons.download),
+          ),
+        ),
       ],
     );
   }
@@ -245,6 +255,31 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class SubscriptionFilter extends StatelessWidget  {
+
+  final List<Color> colors = <Color>[Colors.red, Colors.blue,Colors.amber];
+
+   SubscriptionFilter({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 20.0),
+      height: 75.0,
+      child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: colors.length,
+          itemBuilder: (BuildContext context, int index) {
+            return Container(
+              width: 100.0,
+              color: colors[index],
+            );
+          }
       ),
     );
   }
