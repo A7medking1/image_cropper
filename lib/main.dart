@@ -260,27 +260,3 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class SubscriptionFilter extends StatelessWidget  {
-
-  final List<Color> colors = <Color>[Colors.red, Colors.blue,Colors.amber];
-
-   SubscriptionFilter({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 20.0),
-      height: 75.0,
-      child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: colors.length,
-          itemBuilder: (BuildContext context, int index) {
-            return Container(
-              width: 100.0,
-              color: colors[index],
-            );
-          }
-      ),
-    );
-  }
-}
